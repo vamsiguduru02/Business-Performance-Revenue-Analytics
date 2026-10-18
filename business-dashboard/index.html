@@ -1,0 +1,1317 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Business Performance &amp; Revenue Analytics</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+<style>
+:root {
+  --blue:#2563eb;
+  --green:#10b981;
+  --orange:#f59e0b;
+  --purple:#8b5cf6;
+  --red:#ef4444;
+  --ink:#102747;
+  --muted:#71829a;
+  --line:#e2e9f3;
+  --bg:#f1f5f9;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:Inter,Arial,sans-serif;font-size:12px;line-height:1.5
+}
+button,input,select{font:inherit}
+button{cursor:pointer}
+
+.app{max-width:1800px;margin:auto;padding:20px;animation:pageEnter .5s ease both}
+
+.top{
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:16px;margin-bottom:20px
+}
+h1{font-size:22px;letter-spacing:-.6px;margin:0 0 5px;color:#082e60}
+.subtitle{color:var(--muted);margin:0}
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+.control,.btn{
+  border:1px solid #d6e1ef;border-radius:8px;padding:9px 11px;
+  min-height:36px;background:#fff;color:#334767;transition:all .2s ease
+}
+.control:focus{outline:2px solid #93c5fd;outline-offset:1px}
+.btn{
+  background:var(--blue);border-color:var(--blue);color:white;
+  font-weight:700;box-shadow:0 3px 8px #2563eb20
+}
+.btn:hover{background:#1d4ed8;transform:translateY(-2px);box-shadow:0 5px 12px #2563eb30}
+.btn:active{transform:scale(.98)}
+.btn.secondary{background:white;color:var(--blue)}
+
+.dates{display:none;gap:6px;flex-wrap:wrap}
+.dates.show{display:flex}
+
+.kpis{
+  display:grid;grid-template-columns:repeat(8,minmax(0,1fr));
+  gap:10px;margin-bottom:16px
+}
+.kpi,.panel{
+  background:white;border:1px solid var(--line);border-radius:12px;
+  box-shadow:0 3px 10px #18345608
+}
+.kpi{
+  padding:14px;min-width:0;position:relative;overflow:hidden;
+  transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;
+  animation:cardEnter .45s ease both
+}
+.kpi::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--blue);transform:scaleY(0);transform-origin:bottom;
+  transition:transform .25s ease
+}
+.kpi:hover{transform:translateY(-4px);box-shadow:0 9px 22px #18345612;border-color:#c8d9f5}
+.kpi:hover::before{transform:scaleY(1)}
+.kpi-label{font-size:10px;color:#637590;display:flex;align-items:center;gap:5px}
+.kpi-icon{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:27px;height:27px;border-radius:8px;background:#eff6ff;
+  color:var(--blue);font-size:15px;margin-bottom:8px
+}
+.kpi-value{font-size:21px;font-weight:800;letter-spacing:-.5px;margin:7px 0 4px;overflow-wrap:anywhere}
+.kpi-foot{font-size:10px;color:var(--green)}
+
+.layout{
+  display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
+  gap:12px;margin-bottom:16px
+}
+.panel{
+  padding:15px;min-width:0;overflow:hidden;
+  transition:box-shadow .25s ease,transform .25s ease;
+  animation:panelEnter .5s ease both
+}
+.panel:hover{box-shadow:0 7px 20px #1834560c}
+.panel h3{font-size:12px;margin:0 0 15px;font-weight:800;color:#0b2446}
+.span2{grid-column:span 2}
+.span3{grid-column:span 3}
+.span4{grid-column:span 4}
+.span6{grid-column:span 6}
+.section-title{grid-column:span 12;font-size:14px;font-weight:800;margin:5px 0 -2px;color:#15355e}
+
+.chartbox{position:relative;width:100%;height:220px}
+.smallchart{height:140px}
+.target{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:center}
+.amount{font-size:21px;font-weight:800;margin:8px 0}
+.progress{height:7px;background:#eaf0f8;border-radius:9px;overflow:hidden;margin-top:12px}
+.progress span{
+  display:block;height:100%;width:0;
+  background:linear-gradient(90deg,#2563eb,#60a5fa);
+  border-radius:9px;transition:width .8s cubic-bezier(.2,.8,.2,1)
+}
+
+.funnel{display:flex;flex-direction:column;align-items:center;gap:5px;padding-top:10px}
+.funnel div{
+  text-align:center;color:white;font-size:11px;font-weight:700;padding:9px;
+  clip-path:polygon(0 0,100% 0,83% 100%,17% 100%);
+  transition:filter .2s ease,transform .2s ease
+}
+.funnel div:hover{filter:brightness(1.08);transform:scale(1.02)}
+.stat{padding:14px;border-radius:9px;margin:10px 0;background:#edf4ff}
+.stat.green{background:#e9fbf3}
+.stat b{display:block;margin-top:4px;font-size:19px;overflow-wrap:anywhere}
+
+.bar-row{
+  display:grid;grid-template-columns:minmax(65px,110px) minmax(20px,1fr) 90px;
+  gap:8px;align-items:center;margin:13px 0;font-size:10px
+}
+.bar{height:8px;background:#eaf0f8;border-radius:9px;overflow:hidden}
+.bar span{
+  display:block;height:100%;width:0;border-radius:9px;
+  transition:width .7s cubic-bezier(.2,.8,.2,1)
+}
+.bar-row b{text-align:right;font-size:10px}
+
+.table-wrap{overflow:auto;max-height:320px}
+table{border-collapse:collapse;width:100%;font-size:10px;white-space:nowrap}
+th,td{padding:10px 7px;border-bottom:1px solid #edf1f6;text-align:left}
+th{color:#6a7c95;font-weight:600;position:sticky;top:0;background:white;z-index:1}
+tbody tr{cursor:pointer;transition:background .18s ease}
+tbody tr:hover,tbody tr:focus{background:#f1f6ff;outline:none}
+
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 9px;border-radius:20px;background:#eaf1ff;
+  color:var(--blue);font-size:10px;font-weight:700
+}
+
+/* Colorful priority and status badges */
+.status-badge{
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  padding:5px 10px;border-radius:20px;font-size:10px;font-weight:700;
+  white-space:nowrap;border:1px solid transparent;
+  transition:transform .2s ease,box-shadow .2s ease
+}
+.status-badge:hover{
+  transform:translateY(-2px);
+  box-shadow:0 4px 10px #0f172a1f
+}
+.priority-high{color:#b91c1c;background:#fee2e2;border-color:#fecaca}
+.priority-medium{color:#92400e;background:#fef3c7;border-color:#fde68a}
+.priority-low{color:#047857;background:#d1fae5;border-color:#a7f3d0}
+.status-completed,.status-accepted,.status-collected{
+  color:#047857;background:#d1fae5;border-color:#a7f3d0
+}
+.status-pending{color:#92400e;background:#fef3c7;border-color:#fde68a}
+.status-created{color:#1d4ed8;background:#dbeafe;border-color:#bfdbfe}
+.status-cancelled,.status-rejected{
+  color:#b91c1c;background:#fee2e2;border-color:#fecaca
+}
+.status-dot{
+  width:6px;height:6px;display:inline-block;border-radius:50%;
+  background:currentColor;animation:statusPulse 2s ease-in-out infinite
+}
+
+.bottom-grid{display:grid;grid-template-columns:5fr 3fr 3fr 3fr;gap:12px}
+.bottom-grid .panel{min-height:250px}
+.note{font-size:10px;color:var(--muted);margin-top:15px}
+
+.modal{
+  position:fixed;inset:0;background:#0c1c3599;display:none;
+  align-items:center;justify-content:center;padding:20px;z-index:10
+}
+.modal.show{display:flex;animation:fadeIn .2s ease}
+.dialog{
+  background:white;border-radius:14px;padding:24px;max-width:520px;width:100%;
+  max-height:85vh;overflow:auto;box-shadow:0 20px 70px #0003;
+  animation:dialogEnter .25s ease
+}
+.dialog h2{margin-top:0}
+.dialog p{line-height:1.9;white-space:pre-line;overflow-wrap:anywhere}
+.toast{
+  position:fixed;bottom:20px;right:20px;padding:12px 16px;
+  border-radius:10px;background:#102747;color:white;display:none;
+  z-index:20;box-shadow:0 8px 24px #10274730
+}
+.toast.show{display:block;animation:toastEnter .25s ease}
+.empty{color:var(--muted);padding:15px 0}
+
+@keyframes pageEnter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes cardEnter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes panelEnter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes dialogEnter{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes toastEnter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes statusPulse{0%,100%{opacity:1}50%{opacity:.45}}
+
+@media(max-width:1400px){
+  .kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .span2,.span3,.span4{grid-column:span 6}
+  .bottom-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:720px){
+  .app{padding:10px}
+  h1{font-size:19px}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .span2,.span3,.span4,.span6{grid-column:span 12}
+  .bottom-grid{grid-template-columns:1fr}
+  .controls{width:100%}
+  .control{max-width:100%;min-width:0}
+  .chartbox{height:230px}
+  .target{grid-template-columns:1fr}
+  .smallchart{height:170px}
+  .dates{width:100%}
+  .dates input{flex:1;min-width:0}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    scroll-behavior:auto!important;
+    transition-duration:.01ms!important
+  }
+}
+</style>
+</head>
+
+<body>
+<main class="app">
+
+<header class="top">
+  <div>
+    <h1>▥ Business Performance &amp; Revenue Analytics</h1>
+    <p class="subtitle">Track leads, conversions, quotations, deals, revenue and operations.</p>
+  </div>
+
+  <div class="controls">
+    <select class="control" id="period" aria-label="Date range">
+      <option value="month">This Month</option>
+      <option value="today">Today</option>
+      <option value="7">Last 7 Days</option>
+      <option value="30">Last 30 Days</option>
+      <option value="custom">Custom Date Range</option>
+    </select>
+
+    <span class="dates" id="dates">
+      <input class="control" type="date" id="start" aria-label="Start date">
+      <input class="control" type="date" id="end" aria-label="End date">
+    </span>
+
+    <select class="control" id="userFilter" aria-label="Filter by user">
+      <option value="all">All Users</option>
+      <option>Nancy Singh</option>
+      <option>Sneha Choudhary</option>
+      <option>Tannu Kumari</option>
+      <option>Gaurav Pant</option>
+      <option>Srishti Upadhyay</option>
+      <option>Azam Afaroz</option>
+    </select>
+
+    <select class="control" id="deptFilter" aria-label="Filter by department">
+      <option value="all">All Departments</option>
+      <option value="Sales">Sales</option>
+      <option value="Operations">Operations</option>
+    </select>
+
+    <button class="btn" id="exportBtn">↓ Export CSV</button>
+  </div>
+</header>
+
+<section class="kpis" id="kpis"></section>
+
+<div class="layout">
+
+  <section class="panel span3">
+    <h3>◎ Target Achievement</h3>
+    <div class="target">
+      <div>
+        <span class="muted">Monthly Revenue Target</span>
+        <div class="amount" id="targetAmount">₹85,00,000</div>
+        <div class="muted">Achieved: <b id="achieved">₹0</b></div>
+        <div class="muted">Remaining: <b id="remaining">₹0</b></div>
+      </div>
+      <div class="chartbox smallchart"><canvas id="targetChart"></canvas></div>
+    </div>
+    <div class="progress"><span id="progress"></span></div>
+  </section>
+
+  <section class="panel span3">
+    <h3>♧ Lead Funnel</h3>
+    <div class="funnel">
+      <div style="width:94%;background:#3b82f6">New Leads<br><b id="fNew">0</b></div>
+      <div style="width:73%;background:#10b981">Qualified<br><b id="fQual">0</b></div>
+      <div style="width:52%;background:#f59e0b">Converted<br><b id="fConv">0</b></div>
+    </div>
+    <p class="muted" style="text-align:center">Unqualified: <b id="fUnqual">0</b></p>
+  </section>
+
+  <section class="panel span4">
+    <h3>↗ Daily Lead Trend</h3>
+    <div class="chartbox"><canvas id="trendChart"></canvas></div>
+  </section>
+
+  <section class="panel span2">
+    <h3>◉ Lead Sources</h3>
+    <div class="chartbox"><canvas id="sourceChart"></canvas></div>
+  </section>
+
+  <div class="section-title">▤ Quotation Analytics</div>
+
+  <section class="panel span3">
+    <h3>▥ Quotations by Service / Order Category</h3>
+    <div class="chartbox"><canvas id="quoteChart"></canvas></div>
+  </section>
+
+  <section class="panel span3">
+    <h3>₹ Quotation Value by Service</h3>
+    <div id="quoteBars"></div>
+  </section>
+
+  <section class="panel span4">
+    <h3>▣ Service-wise Quotation Details</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Service</th><th>Quotes</th><th>Amount</th><th>Accepted</th><th>Pending</th></tr></thead>
+        <tbody id="quoteTable"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel span2">
+    <h3>⇄ Quote to Deal Conversion</h3>
+    <div class="chartbox"><canvas id="conversionChart"></canvas></div>
+    <p class="muted" id="conversionLabel" style="text-align:center"></p>
+  </section>
+
+  <div class="section-title">＄ Deals &amp; Revenue</div>
+
+  <section class="panel span3">
+    <h3>◆ Deals Created by Service</h3>
+    <div class="chartbox"><canvas id="dealChart"></canvas></div>
+  </section>
+
+  <section class="panel span3">
+    <h3>₹ Revenue by Service Category</h3>
+    <div id="revenueBars"></div>
+  </section>
+
+  <section class="panel span2">
+    <h3>⚑ Priority Breakdown</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Priority</th><th>Deals</th><th>Revenue</th></tr></thead>
+        <tbody id="priorityTable"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel span2">
+    <h3>◷ Daily Revenue Trend</h3>
+    <div class="chartbox"><canvas id="revenueChart"></canvas></div>
+  </section>
+
+  <section class="panel span2">
+    <h3>⇄ Revenue Summary</h3>
+    <div class="stat">
+      <span class="muted">Total Deal Value</span>
+      <b id="totalValue">₹0</b>
+    </div>
+    <div class="stat green">
+      <span class="muted">Net Collected Revenue</span>
+      <b id="collectedValue">₹0</b>
+    </div>
+    <span class="muted">Outstanding: <b id="outstanding">₹0</b></span>
+  </section>
+
+</div>
+
+<div class="bottom-grid">
+
+  <section class="panel">
+    <h3>♙ Sales Team Activity <span class="badge">Sales Team</span></h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>User</th><th>Leads</th><th>Qualified</th><th>Converted</th><th>Conversion %</th><th>Quotes</th><th>Deals</th><th>Revenue</th></tr></thead>
+        <tbody id="salesTable"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h3>⚙ Operations Team Activity</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>User</th><th>Orders</th><th>Completed</th><th>Pending</th></tr></thead>
+        <tbody id="opsTable"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h3>▥ Orders &amp; Stage Progress</h3>
+    <div id="stageBars"></div>
+  </section>
+
+  <section class="panel">
+    <h3>◷ Recent CRM Activity</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Employee</th><th>Action</th><th>Record</th></tr></thead>
+        <tbody id="activityRows"></tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+
+<p class="note">ⓘ Demonstration dashboard · Synthetic data · Interactive filters · No backend required.</p>
+</main>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="dialog">
+    <h2 id="modalTitle">Record Details</h2>
+    <p id="modalBody"></p>
+    <button class="btn" id="closeModal">✕ Close</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+"use strict";
+
+const $ = selector => document.querySelector(selector);
+const TARGET = 8500000;
+
+const money = value => new Intl.NumberFormat("en-IN", {
+  style:"currency",
+  currency:"INR",
+  maximumFractionDigits:0
+}).format(Number(value)||0);
+
+const pct = (a,b) => b ? (100*a/b).toFixed(1)+"%" : "0.0%";
+
+const services = [
+  "Private Limited Company",
+  "LLP Registration",
+  "Trademark",
+  "Startup India Registration",
+  "ISO Certification",
+  "Annual Compliance"
+];
+
+const staff = ["Nancy Singh","Sneha Choudhary","Tannu Kumari"];
+const operators = ["Gaurav Pant","Srishti Upadhyay","Azam Afaroz"];
+const sources = ["Google Ads","Website","Other","Just Dial"];
+
+const colors = ["#2563eb","#10b981","#f59e0b","#8b5cf6","#06b6d4","#f97316"];
+const kpiIcons = ["♧","✓","↗","!","%","▤","◆","▣"];
+
+let leads=[],quotes=[],deals=[],orders=[],payments=[];
+let charts={};
+let filteredView={leads:[],quotes:[],deals:[],orders:[],payments:[]};
+
+function localDateString(date){
+  return date.getFullYear()+"-"+
+    String(date.getMonth()+1).padStart(2,"0")+"-"+
+    String(date.getDate()).padStart(2,"0");
+}
+
+function dateString(day){
+  return "2026-10-"+String(day).padStart(2,"0");
+}
+
+/* Generate local demonstration data */
+function generateData(){
+  leads=[];quotes=[];deals=[];orders=[];payments=[];
+
+  for(let i=0;i<91;i++){
+    const day=1+(i%31);
+    const owner=staff[i%staff.length];
+
+    leads.push({
+      id:"L-"+String(i+1).padStart(4,"0"),
+      kind:"Lead",
+      department:"Sales",
+      date:dateString(day),
+      owner,
+      source:sources[i%sources.length],
+      qualified:i%3!==0,
+      converted:i%6===0,
+      service:services[i%services.length]
+    });
+  }
+
+  for(let i=0;i<107;i++){
+    const lead=leads[i%leads.length];
+    const amounts=[654326,135272,22496,22399,77117,27500];
+
+    quotes.push({
+      id:"Q-"+String(i+1).padStart(4,"0"),
+      kind:"Quotation",
+      department:"Sales",
+      leadId:lead.id,
+      owner:lead.owner,
+      date:lead.date,
+      service:services[i%services.length],
+      amount:Math.round(amounts[i%amounts.length]/10)+5000+(i%7)*1250,
+      status:"Pending"
+    });
+  }
+
+  for(let i=0;i<23;i++){
+    const quote=quotes[i];
+    const lead=leads.find(x=>x.id===quote.leadId);
+    const value=[12000,15000,9000,8000,11000][i%5]+i*750;
+
+    quote.status="Accepted";
+
+    deals.push({
+      id:"D-"+String(i+1).padStart(4,"0"),
+      kind:"Deal",
+      department:"Sales",
+      quoteId:quote.id,
+      leadId:quote.leadId,
+      owner:quote.owner,
+      date:quote.date,
+      service:quote.service,
+      priority:i<14?"High":i<23?"Medium":"Low",
+      value,
+      status:"Created"
+    });
+
+    if(lead)lead.converted=true;
+  }
+
+  operators.forEach((owner,index)=>{
+    for(let i=0;i<[17,5,3][index];i++){
+      orders.push({
+        id:"O-"+String(orders.length+1).padStart(4,"0"),
+        kind:"Order",
+        department:"Operations",
+        owner,
+        date:dateString(1+(i%31)),
+        service:services[i%services.length],
+        status:i%3===0?"Completed":"Pending"
+      });
+    }
+  });
+
+  deals.forEach((deal,index)=>{
+    payments.push({
+      id:"P-"+String(index+1).padStart(4,"0"),
+      kind:"Payment",
+      department:"Sales",
+      dealId:deal.id,
+      quoteId:deal.quoteId,
+      leadId:deal.leadId,
+      owner:deal.owner,
+      date:deal.date,
+      amount:Math.round(deal.value*(index%3===0?0.9:0.65)),
+      status:"Collected"
+    });
+  });
+}
+
+/* Resolve date filter and reject future dates */
+function dateBounds(){
+  const period=$("#period").value;
+  const today=new Date();
+  today.setHours(0,0,0,0);
+  const todayStr=localDateString(today);
+
+  if(period==="custom"){
+    const startValue=$("#start").value;
+    const endValue=$("#end").value;
+
+    if(!startValue||!endValue)return ["",""];
+
+    if(startValue>todayStr||endValue>todayStr||startValue>endValue){
+      return ["",""];
+    }
+
+    return [startValue,endValue];
+  }
+
+  const start=new Date(today);
+  const end=new Date(today);
+
+  if(period==="month"){
+    start.setDate(1);
+  }else if(period==="7"){
+    start.setDate(start.getDate()-6);
+  }else if(period==="30"){
+    start.setDate(start.getDate()-29);
+  }
+
+  return [localDateString(start),localDateString(end)];
+}
+
+function filtered(){
+  const [start,end]=dateBounds();
+
+  if(!start||!end||start>end){
+    return {leads:[],quotes:[],deals:[],orders:[],payments:[]};
+  }
+
+  const user=$("#userFilter").value;
+  const department=$("#deptFilter").value;
+
+  const keep=record=>
+    record.date>=start&&record.date<=end&&
+    (user==="all"||record.owner===user)&&
+    (department==="all"||record.department===department);
+
+  return {
+    leads:leads.filter(keep),
+    quotes:quotes.filter(keep),
+    deals:deals.filter(keep),
+    orders:orders.filter(keep),
+    payments:payments.filter(keep)
+  };
+}
+
+function sum(records,field){
+  return records.reduce((total,r)=>total+(Number(r[field])||0),0);
+}
+
+/* Create professional colored labels */
+function statusBadge(value){
+  const text=String(value||"Unknown");
+  const key=text.toLowerCase().replace(/[^a-z]+/g,"-");
+
+  const icons={
+    high:"●",
+    medium:"◉",
+    low:"●",
+    pending:"◷",
+    completed:"✓",
+    accepted:"✓",
+    collected:"₹",
+    created:"◆",
+    cancelled:"✕",
+    rejected:"✕"
+  };
+
+  const badge=document.createElement("span");
+  badge.className="status-badge "+(
+    ["high","medium","low"].includes(key)?"priority-"+key:"status-"+key
+  );
+
+  const icon=document.createElement("span");
+  icon.textContent=icons[key]||"●";
+  icon.setAttribute("aria-hidden","true");
+
+  if(key==="high"||key==="pending"){
+    icon.className="status-dot";
+  }
+
+  const label=document.createElement("span");
+  label.textContent=text;
+
+  badge.append(icon,label);
+  return badge;
+}
+
+function makeChart(id,type,labels,datasets,extra={}){
+  const canvas=document.getElementById(id);
+  if(!canvas||typeof Chart==="undefined")return;
+
+  if(charts[id]){
+    charts[id].destroy();
+    delete charts[id];
+  }
+
+  const isCircular=type==="doughnut"||type==="pie";
+
+  const options={
+    responsive:true,
+    maintainAspectRatio:false,
+    animation:{duration:550,easing:"easeOutQuart"},
+    interaction:{mode:"index",intersect:false},
+    plugins:{
+      legend:{
+        display:isCircular||datasets.length>1,
+        position:"bottom",
+        labels:{boxWidth:9,padding:12,font:{family:"Inter",size:10}}
+      },
+      tooltip:{enabled:true}
+    },
+    ...extra
+  };
+
+  if(type==="line"||type==="bar"){
+    options.scales=options.scales||{
+      x:{
+        ticks:{autoSkip:true,maxTicksLimit:7,maxRotation:0},
+        grid:{display:false}
+      },
+      y:{
+        beginAtZero:true,
+        ticks:{maxTicksLimit:5},
+        grid:{color:"#edf1f6"}
+      }
+    };
+  }
+
+  try{
+    charts[id]=new Chart(canvas.getContext("2d"),{
+      type,
+      data:{labels,datasets},
+      options
+    });
+  }catch(error){
+    console.error("Chart error:",id,error);
+  }
+}
+
+function dataset(label,values,color){
+  return {
+    label,
+    data:values,
+    borderColor:color,
+    backgroundColor:color,
+    borderWidth:2,
+    tension:.3,
+    pointRadius:2,
+    pointHoverRadius:5,
+    fill:false,
+    maxBarThickness:28
+  };
+}
+
+function datesBetween(start,end){
+  const result=[];
+  const d=new Date(start+"T12:00:00");
+  const last=new Date(end+"T12:00:00");
+
+  while(d<=last){
+    result.push(localDateString(d));
+    d.setDate(d.getDate()+1);
+  }
+
+  return result;
+}
+
+function renderBars(id,items,format=money){
+  const container=document.getElementById(id);
+  if(!container)return;
+
+  if(!items.length){
+    container.innerHTML='<p class="empty">No data available for this selection.</p>';
+    return;
+  }
+
+  const max=Math.max(1,...items.map(item=>Number(item[1])||0));
+  container.replaceChildren();
+
+  items.forEach((item,index)=>{
+    const value=Number(item[1])||0;
+    const row=document.createElement("div");
+    row.className="bar-row";
+
+    const label=document.createElement("span");
+    label.textContent=item[0];
+    label.title=item[0];
+
+    const bar=document.createElement("div");
+    bar.className="bar";
+
+    const fill=document.createElement("span");
+    fill.style.background=colors[index%colors.length];
+    bar.appendChild(fill);
+
+    const amount=document.createElement("b");
+    amount.textContent=format(value);
+
+    row.append(label,bar,amount);
+    container.appendChild(row);
+
+    requestAnimationFrame(()=>{
+      fill.style.width=Math.min(100,value/max*100)+"%";
+    });
+  });
+}
+
+function renderTable(id,records,columns){
+  const tbody=document.getElementById(id);
+  if(!tbody)return;
+
+  tbody.replaceChildren();
+
+  if(!records.length){
+    const tr=document.createElement("tr");
+    const td=document.createElement("td");
+    td.colSpan=columns.length;
+    td.className="muted";
+    td.textContent="No records for this selection";
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    return;
+  }
+
+  records.forEach(record=>{
+    const row=document.createElement("tr");
+    row.tabIndex=0;
+    row.setAttribute("role","button");
+    row.setAttribute("aria-label","View details");
+
+    columns.forEach(column=>{
+      const td=document.createElement("td");
+      td.textContent=String(column(record)??"—");
+      row.appendChild(td);
+    });
+
+    const open=()=>showDetails(record);
+
+    row.addEventListener("click",open);
+    row.addEventListener("keydown",event=>{
+      if(event.key==="Enter"||event.key===" "){
+        event.preventDefault();
+        open();
+      }
+    });
+
+    tbody.appendChild(row);
+  });
+}
+
+function showDetails(record){
+  $("#modalTitle").textContent=record.id||record.owner||record.service||"Record Details";
+
+  const fields=[
+    ["Type",record.kind],
+    ["ID",record.id],
+    ["Owner",record.owner],
+    ["Department",record.department],
+    ["Date",record.date],
+    ["Service",record.service],
+    ["Amount",record.amount??record.value],
+    ["Priority",record.priority],
+    ["Status",record.status],
+    ["Related Lead",record.leadId],
+    ["Related Quotation",record.quoteId],
+    ["Related Deal",record.dealId],
+    ["Source",record.source]
+  ];
+
+  $("#modalBody").textContent=fields
+    .filter(([,value])=>value!==undefined&&value!==null)
+    .map(([key,value])=>key+": "+(key==="Amount"?money(value):value))
+    .join("\n");
+
+  $("#modal").classList.add("show");
+  $("#closeModal").focus();
+}
+
+function render(){
+  const [start,end]=dateBounds();
+
+  if(!start||!end||start>end){
+    filteredView={leads:[],quotes:[],deals:[],orders:[],payments:[]};
+    showToast("Please choose a valid date range up to today.");
+  }else{
+    filteredView=filtered();
+  }
+
+  const L=filteredView.leads;
+  const Q=filteredView.quotes;
+  const D=filteredView.deals;
+  const O=filteredView.orders;
+  const P=filteredView.payments;
+
+  const qualified=L.filter(x=>x.qualified).length;
+  const converted=L.filter(x=>x.converted).length;
+  const unqualified=L.length-qualified;
+
+  const totalRevenue=sum(D,"value");
+  const collectedRevenue=sum(P,"amount");
+  const outstanding=Math.max(0,totalRevenue-collectedRevenue);
+
+  /* KPI cards */
+  const kpis=[
+    ["New Leads",L.length],
+    ["Qualified Leads",qualified],
+    ["Converted Leads",converted],
+    ["Unqualified Leads",unqualified],
+    ["Conversion Rate",pct(converted,L.length)],
+    ["Quotations Created",Q.length],
+    ["Deals Created",D.length],
+    ["Orders Generated",O.length]
+  ];
+
+  $("#kpis").replaceChildren();
+
+  kpis.forEach((item,index)=>{
+    const card=document.createElement("div");
+    card.className="kpi";
+    card.style.animationDelay=(index*55)+"ms";
+
+    const icon=document.createElement("div");
+    icon.className="kpi-icon";
+    icon.textContent=kpiIcons[index];
+
+    const label=document.createElement("div");
+    label.className="kpi-label";
+    label.textContent=item[0];
+
+    const value=document.createElement("div");
+    value.className="kpi-value";
+    value.textContent=item[1];
+
+    const foot=document.createElement("div");
+    foot.className="kpi-foot";
+    foot.textContent="Current selection";
+
+    card.append(icon,label,value,foot);
+    $("#kpis").appendChild(card);
+  });
+
+  $("#fNew").textContent=L.length;
+  $("#fQual").textContent=qualified;
+  $("#fConv").textContent=converted;
+  $("#fUnqual").textContent=unqualified;
+
+  $("#achieved").textContent=money(totalRevenue);
+  $("#remaining").textContent=money(Math.max(0,TARGET-totalRevenue));
+  $("#progress").style.width=Math.min(100,totalRevenue/TARGET*100)+"%";
+  $("#totalValue").textContent=money(totalRevenue);
+  $("#collectedValue").textContent=money(collectedRevenue);
+  $("#outstanding").textContent=money(outstanding);
+
+  /* Target chart */
+  makeChart("targetChart","doughnut",["Achieved","Remaining"],[{
+    data:[Math.min(totalRevenue,TARGET),Math.max(0,TARGET-totalRevenue)],
+    backgroundColor:["#2563eb","#e8eef7"],
+    borderWidth:0
+  }],{cutout:"72%"});
+
+  const chartDates=start&&end?datesBetween(start,end):[];
+  const countOnDate=(records,date)=>records.filter(r=>r.date===date).length;
+  const amountOnDate=(records,date,field)=>sum(records.filter(r=>r.date===date),field);
+
+  /* Lead trend */
+  makeChart("trendChart","line",chartDates,[
+    dataset("New Leads",chartDates.map(d=>countOnDate(L,d)),"#2563eb"),
+    dataset("Qualified",chartDates.map(d=>L.filter(x=>x.date===d&&x.qualified).length),"#10b981"),
+    dataset("Converted",chartDates.map(d=>L.filter(x=>x.date===d&&x.converted).length),"#f59e0b")
+  ]);
+
+  /* Lead source chart */
+  const sourceNames=["Google Ads","Website","Other","Just Dial"];
+
+  makeChart("sourceChart","doughnut",sourceNames,[{
+    data:sourceNames.map(s=>L.filter(r=>r.source===s).length),
+    backgroundColor:colors.slice(0,4),
+    borderWidth:0
+  }],{cutout:"65%"});
+
+  /* Quotation analytics */
+  const quoteCounts=services.map(s=>Q.filter(r=>r.service===s).length);
+  const quoteValues=services.map(s=>sum(Q.filter(r=>r.service===s),"amount"));
+
+  makeChart("quoteChart","bar",services.map(s=>s.split(" ")[0]),[
+    dataset("Quotations",quoteCounts,"#2563eb")
+  ]);
+
+  renderBars("quoteBars",services.map((s,i)=>[s,quoteValues[i]]));
+
+  const acceptedIds=new Set(D.map(d=>d.quoteId));
+
+  renderTable("quoteTable",services.map(service=>{
+    const matching=Q.filter(q=>q.service===service);
+    const accepted=matching.filter(q=>acceptedIds.has(q.id)).length;
+
+    return {
+      id:service,
+      service,
+      quotes:matching.length,
+      amount:sum(matching,"amount"),
+      accepted,
+      pending:matching.length-accepted
+    };
+  }),[
+    r=>r.service,
+    r=>r.quotes,
+    r=>money(r.amount),
+    r=>r.accepted,
+    r=>r.pending
+  ]);
+
+  /* Quote conversion */
+  makeChart("conversionChart","doughnut",["Deals","Other Quotes"],[{
+    data:[Math.min(D.length,Q.length),Math.max(0,Q.length-D.length)],
+    backgroundColor:["#2563eb","#e8eef7"],
+    borderWidth:0
+  }],{cutout:"72%"});
+
+  $("#conversionLabel").textContent=
+    pct(D.length,Q.length)+" · "+D.length+" Deals / "+Q.length+" Quotes";
+
+  /* Deal chart */
+  makeChart("dealChart","bar",services.map(s=>s.split(" ")[0]),[
+    dataset("Deals",services.map(s=>D.filter(d=>d.service===s).length),"#2563eb")
+  ]);
+
+  /* Revenue bars */
+  renderBars("revenueBars",services.map(s=>[
+    s,sum(D.filter(d=>d.service===s),"value")
+  ]));
+
+  /* Priority table with colorful badges */
+  const priorityRows=["High","Medium","Low"].map(priority=>{
+    const matching=D.filter(d=>d.priority===priority);
+
+    return {
+      id:priority,
+      priority,
+      count:matching.length,
+      revenue:sum(matching,"value")
+    };
+  });
+
+  renderTable("priorityTable",priorityRows,[
+    r=>r.priority,
+    r=>r.count,
+    r=>money(r.revenue)
+  ]);
+
+  document.querySelectorAll("#priorityTable tr").forEach(row=>{
+    const firstCell=row.cells[0];
+    if(!firstCell)return;
+
+    const value=firstCell.textContent.trim();
+
+    if(["High","Medium","Low"].includes(value)){
+      firstCell.replaceChildren(statusBadge(value));
+    }
+  });
+
+  /* Daily revenue */
+  makeChart("revenueChart","line",chartDates,[
+    dataset("Revenue",chartDates.map(d=>amountOnDate(D,d,"value")),"#2563eb"),
+    dataset("Collected",chartDates.map(d=>amountOnDate(P,d,"amount")),"#10b981")
+  ],{
+    scales:{
+      x:{
+        ticks:{autoSkip:true,maxTicksLimit:7,maxRotation:0},
+        grid:{display:false}
+      },
+      y:{
+        beginAtZero:true,
+        ticks:{
+          maxTicksLimit:5,
+          callback:value=>value>=100000
+            ?"₹"+(value/100000).toFixed(1)+"L"
+            :value>=1000
+              ?"₹"+(value/1000).toFixed(0)+"K"
+              :"₹"+value
+        },
+        grid:{color:"#edf1f6"}
+      }
+    }
+  });
+
+  /* Sales team table */
+  const selectedUser=$("#userFilter").value;
+
+  const teamRows=staff
+    .filter(owner=>selectedUser==="all"||owner===selectedUser)
+    .map(owner=>{
+      const ml=L.filter(r=>r.owner===owner);
+      const md=D.filter(r=>r.owner===owner);
+
+      return {
+        owner,
+        leads:ml.length,
+        qualified:ml.filter(x=>x.qualified).length,
+        converted:ml.filter(x=>x.converted).length,
+        quotes:Q.filter(q=>q.owner===owner).length,
+        deals:md.length,
+        revenue:sum(md,"value")
+      };
+    });
+
+  renderTable("salesTable",teamRows,[
+    r=>r.owner,
+    r=>r.leads,
+    r=>r.qualified,
+    r=>r.converted,
+    r=>pct(r.converted,r.leads),
+    r=>r.quotes,
+    r=>r.deals,
+    r=>money(r.revenue)
+  ]);
+
+  /* Operations table */
+  const operationsRows=operators
+    .filter(owner=>selectedUser==="all"||owner===selectedUser)
+    .map(owner=>{
+      const matching=O.filter(r=>r.owner===owner);
+
+      return {
+        owner,
+        updated:matching.length,
+        completed:matching.filter(r=>r.status==="Completed").length,
+        pending:matching.filter(r=>r.status!=="Completed").length
+      };
+    });
+
+  renderTable("opsTable",operationsRows,[
+    r=>r.owner,
+    r=>r.updated,
+    r=>r.completed,
+    r=>r.pending
+  ]);
+
+  /* Animated orders and stage progress */
+  const stageContainer=$("#stageBars");
+  stageContainer.replaceChildren();
+
+  const stageMax=Math.max(1,...services.map(service=>
+    O.filter(o=>o.service===service).length
+  ));
+
+  services.forEach((service,index)=>{
+    const count=O.filter(o=>o.service===service).length;
+
+    const row=document.createElement("div");
+    row.className="bar-row";
+
+    const name=document.createElement("span");
+    name.textContent=service;
+
+    const bar=document.createElement("div");
+    bar.className="bar";
+
+    const fill=document.createElement("span");
+    fill.style.background=colors[index%colors.length];
+    fill.style.width="0";
+    bar.appendChild(fill);
+
+    const number=document.createElement("b");
+    number.textContent=count;
+
+    row.append(name,bar,number);
+    stageContainer.appendChild(row);
+
+    requestAnimationFrame(()=>{
+      fill.style.width=(count/stageMax*100)+"%";
+    });
+  });
+
+  /* Recent CRM activity */
+  const activity=[...L,...Q,...D,...O,...P]
+    .sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id))
+    .slice(0,12);
+
+  renderTable("activityRows",activity,[
+    r=>r.date,
+    r=>r.owner,
+    r=>r.kind,
+    r=>r.id
+  ]);
+}
+
+/* CSV export */
+function exportCSV(){
+  const records=[
+    ...filteredView.leads,
+    ...filteredView.quotes,
+    ...filteredView.deals,
+    ...filteredView.orders,
+    ...filteredView.payments
+  ];
+
+  const headers=[
+    "Type","ID","Date","Owner","Department","Service",
+    "Amount","Status","Priority","Related Lead","Related Quotation","Related Deal"
+  ];
+
+  const rows=records.map(r=>[
+    r.kind,r.id,r.date,r.owner,r.department,r.service||"",
+    r.amount??r.value??"",r.status||"",r.priority||"",
+    r.leadId||"",r.quoteId||"",r.dealId||""
+  ]);
+
+  const escapeCSV=value=>'"'+String(value??"").replace(/"/g,'""')+'"';
+
+  const csv="\uFEFF"+[headers,...rows]
+    .map(row=>row.map(escapeCSV).join(","))
+    .join("\r\n");
+
+  const url=URL.createObjectURL(
+    new Blob([csv],{type:"text/csv;charset=utf-8"})
+  );
+
+  const link=document.createElement("a");
+  link.href=url;
+  link.download="business-dashboard-data.csv";
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  showToast("CSV exported successfully.");
+}
+
+function showToast(message){
+  const toast=$("#toast");
+  toast.textContent=message;
+  toast.classList.add("show");
+
+  clearTimeout(showToast.timer);
+  showToast.timer=setTimeout(()=>{
+    toast.classList.remove("show");
+  },2500);
+}
+
+/* Initialize date inputs */
+function initializeDateFilters(){
+  const today=new Date();
+  today.setHours(0,0,0,0);
+
+  const todayStr=localDateString(today);
+  const monthStart=new Date(today.getFullYear(),today.getMonth(),1);
+
+  $("#start").max=todayStr;
+  $("#end").max=todayStr;
+  $("#start").value=localDateString(monthStart);
+  $("#end").value=todayStr;
+}
+
+/* Filter events */
+$("#period").addEventListener("change",()=>{
+  const isCustom=$("#period").value==="custom";
+  $("#dates").classList.toggle("show",isCustom);
+
+  if(isCustom){
+    const now=new Date();
+    now.setHours(0,0,0,0);
+    const monthStart=new Date(now.getFullYear(),now.getMonth(),1);
+
+    $("#start").value=localDateString(monthStart);
+    $("#end").value=localDateString(now);
+  }
+
+  render();
+});
+
+$("#start").addEventListener("change",()=>{
+  const today=localDateString(new Date());
+
+  if($("#start").value>today){
+    $("#start").value=today;
+    showToast("Future dates are not allowed.");
+  }
+
+  render();
+});
+
+$("#end").addEventListener("change",()=>{
+  const today=localDateString(new Date());
+
+  if($("#end").value>today){
+    $("#end").value=today;
+    showToast("Future dates are not allowed.");
+  }
+
+  render();
+});
+
+["userFilter","deptFilter"].forEach(id=>{
+  $("#"+id).addEventListener("change",render);
+});
+
+$("#exportBtn").addEventListener("click",exportCSV);
+
+/* Modal events */
+$("#closeModal").addEventListener("click",()=>{
+  $("#modal").classList.remove("show");
+});
+
+$("#modal").addEventListener("click",event=>{
+  if(event.target.id==="modal"){
+    $("#modal").classList.remove("show");
+  }
+});
+
+document.addEventListener("keydown",event=>{
+  if(event.key==="Escape"){
+    $("#modal").classList.remove("show");
+  }
+});
+
+/* Start dashboard */
+initializeDateFilters();
+generateData();
+render();
+</script>
+</body>
+</html>
